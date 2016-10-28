@@ -7,6 +7,8 @@ local MINUTES = 60 * SECONDS
 local delay     = 2 * MINUTES -- delay between obituaries
 local threshold = 0
 
+local range = 2 -- entity search range
+
 local is_water = {
   [ 'water'           ] = true;
   [ 'water-green'     ] = true;
@@ -37,49 +39,54 @@ local function on_died( event )
   local surface = player.surface
   local suspect
 
-  -- guess how they died
+  local __1__ = player.name
+  local __2__, __3__ -- depends on cause of death
 
-  if event.force and event.tick % 3 == 0 then -- killed by...?
 
-    local killed_by = event.force == player.force and 'friend' or 'enemy'
 
+--[[ KILLED BY ]]--
+-- throttled so it's rare; entity-based obituaries are more fun
+  if event.force and ( event.tick % 7 == 0 ) then
+
+    __2__ = event.force.name
+    __3__ = player.force.name
+
+    local killed_by = ( __2__ == __3__ ) and 'friend' or 'enemy'
     suspect = cause_of_death[ killed_by ]
+    return game.print { killed_by .. '-' .. random( 1, suspect ), __1__, __2__, __3__ }
 
-    return game.print { killed_by .. '-' .. random( 1, suspect ), player.name, event.force }
 
+--[[ DROWNED ]]--
+  elseif is_water[ surface.get_tile( player.position ).name ] then
 
-  elseif is_water[ surface.get_tile( player.position ).name ] then -- drowned
+    __2__ = { 'tile-name.'..surface.get_tile( player.position ).name }
 
     suspect = cause_of_death.water
-
-    local water_name = { 'tile-name.'..surface.get_tile( player.position ).name }
-
-    return game.print { 'water-' .. random( 1, suspect ), player.name, water_name }
+    return game.print { 'water-' .. random( 1, suspect ), __1__, __2__ }
 
 
-  else -- search for other suspects
+--[[ ENTITY SEARCH ]]--
+  else
 
     local x, y   = player.position.x, player.position.y
-    local nearby = surface.find_entities { { x-1, y-1 }, { x+1, y+1 } }
-    local type
+    local nearby = surface.find_entities { { x-range, y-range }, { x+range, y+range } }
 
     for _, entity in pairs( nearby ) do
-
-      type = entity.type
-
-      suspect = cause_of_death[ type ]
+      suspect = cause_of_death[ entity.type ]
 
       if suspect then
-        return game.print { type .. '-' .. random( 1, suspect ), player.name, {'entity-name.'..entity.name} }
+        __2__ = { 'entity-name.' .. entity.name }
+        __3__ = entity.type
+
+        return game.print { entity.type .. '-' .. random( 1, suspect ), __1__, __2__, __3__ }
       end
 
     end--for
 
 
-    -- cause unknown
+--[[ UNKNOWN ]]--
     suspect = cause_of_death.unknown
-
-    return game.print { 'unknown-' .. random( 1, suspect ), player.name }
+    return game.print { 'unknown-' .. random( 1, suspect ), __1__ }
 
   end
 
