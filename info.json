@@ -1,0 +1,12 @@
+{
+  "name":             "Obituaries",
+  "version":          "0.0.1",
+  "title":            "Obituaries",
+  "author":           "aubergine18",
+  "contact":          "",
+  "homepage":         "https://github.com/aubergine10/obituaries",
+  "description":      "Even giant raidioactive monsters are aware of your failure.\n\nRequires Factorio 0.14.13 or above.",
+  "factorio_version": "0.14",
+  "dependencies":     ["base >= 0.14.13"],
+  "license": "MIT"
+}
